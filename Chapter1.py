@@ -64,6 +64,7 @@ sigma2.plot()
 
 z = returns / sigma2.apply(np.sqrt)
 z.plot()
+sb.distplot(z, fit=stats.norm)
 
 print(z.mean())
 print(z.std())
@@ -95,7 +96,7 @@ tab.add_row(['kurt', returnsDaily.kurt(), returns5Day.kurt(), returns10Day.kurt(
 tab.float_format = '.4'
 print(tab)
 
-# Exercise 7
+# Exercise 8
 
 q = -stats.norm.ppf(0.01)
 VaR = q * sigma2.apply(np.sqrt)
