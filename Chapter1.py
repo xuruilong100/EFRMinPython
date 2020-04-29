@@ -7,7 +7,7 @@ from prettytable import PrettyTable
 from scipy import stats
 
 spClose = pd.read_csv(
-    'Chapter1_Data.csv', index_col='Date',
+    'data/Chapter1_Data.csv', index_col='Date',
     squeeze=True, parse_dates=True)
 
 print(type(spClose))

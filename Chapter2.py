@@ -28,7 +28,7 @@ def WHSmethod(data, p, eta):
 
 
 spClose = pd.read_csv(
-    'Chapter2_Data1.csv', index_col='Date',
+    'data/Chapter2_Data1.csv', index_col='Date',
     squeeze=True, parse_dates=True)
 
 print(type(spClose))
@@ -88,7 +88,7 @@ print(shortWhsVaR)
 # Exercise 3
 
 spClose = pd.read_csv(
-    'Chapter2_Data2.csv', index_col='Date',
+    'data/Chapter2_Data2.csv', index_col='Date',
     squeeze=True, parse_dates=True)
 
 print(type(spClose))

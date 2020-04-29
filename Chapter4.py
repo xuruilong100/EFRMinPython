@@ -10,7 +10,7 @@ import statsmodels.tsa.api as tsa
 # Exercise 1
 
 spClose = pd.read_csv(
-    'Chapter4_Data1.csv', parse_dates=True,
+    'data/Chapter4_Data1.csv', parse_dates=True,
     index_col='Date', squeeze=True)
 spClose.plot()
 

@@ -5,7 +5,7 @@ import statsmodels.tsa.api as tsa
 
 # Exercise 4
 
-dataSet = pd.read_csv('Chapter3_Data1.csv')
+dataSet = pd.read_csv('data/Chapter3_Data1.csv')
 
 dataSet.plot()
 
@@ -20,7 +20,7 @@ sb.distplot(arParams)
 
 # Exercise 5
 
-dataSet = pd.read_csv('Chapter3_Data2.csv', squeeze=True)
+dataSet = pd.read_csv('data/Chapter3_Data2.csv', squeeze=True)
 
 dataSet.plot()
 
