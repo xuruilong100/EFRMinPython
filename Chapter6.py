@@ -3,7 +3,7 @@ import pandas as pd
 import seaborn as sb
 import statsmodels.api as sm
 from scipy import stats
-from arch.univariate import ConstantMean
+from arch.univariate import ConstantMean, StudentsT, ZeroMean
 from archEx.NGARCH import NGARCH11, FixedNGARCH11
 
 # Exercise 1
@@ -77,6 +77,68 @@ print(rst)
 rst.plot(annualize='D')
 
 sb.distplot(rst.resid, fit=stats.norm)
+
+sm.graphics.qqplot(
+    rst.std_resid, line='45')
+
+# Exercise 4
+
+scale = 100.0
+
+spClose = pd.read_csv(
+    'data/Chapter4_Data1.csv', parse_dates=True,
+    index_col='Date', squeeze=True)
+
+returns = spClose.apply(np.log) - spClose.shift(1).apply(np.log)
+returns *= scale
+returns.dropna(inplace=True)
+
+omega = 0.000005 * scale ** 2
+alpha = 0.07
+beta = 0.85
+theta = 0.5
+
+# using NGARCH11
+
+tsm = ZeroMean(returns)
+ngarch = NGARCH11(
+    np.array([omega, alpha, beta, theta]))
+tsm.volatility = ngarch
+tsm.distribution = StudentsT()
+rst = tsm.fit(
+    starting_values=np.array(
+        [omega, alpha, beta, theta, 10.0]))
+
+print(rst)
+rst.plot(annualize='D')
+
+sb.distplot(rst.resid, fit=stats.t)
+
+print(
+    ngarch.is_valid(
+        rst.params['alpha'],
+        rst.params['beta'],
+        rst.params['theta']))
+
+sm.graphics.qqplot(
+    rst.std_resid, line='45')
+
+# using FixedNGARCH11
+
+tsm = ZeroMean(returns)
+fixed_ngarch = FixedNGARCH11(
+    1.373877,  # author's result
+    np.array([omega, alpha, beta]))
+tsm.volatility = fixed_ngarch
+tsm.distribution = StudentsT()
+rst = tsm.fit(
+    starting_values=np.array(
+        [omega, alpha, beta, 10.0]))
+
+print(rst)
+rst.plot(annualize='D')
+
+sb.distplot(rst.resid, fit=stats.t)
 
 sm.graphics.qqplot(
     rst.std_resid, line='45')
