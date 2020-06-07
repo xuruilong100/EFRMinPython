@@ -1,12 +1,12 @@
 import numpy as np
 import pandas as pd
 from arch import arch_model
-from arch.univariate import ConstantMean, GARCH
+from arch.univariate import ConstantMean, GARCH, ZeroMean, StudentsT
 import seaborn as sb
 from scipy import stats
 import statsmodels.api as sm
-import statsmodels.tsa.api as tsa
 from archEx.NGARCH import NGARCH11, FixedNGARCH11
+from archEx.GARCHX import GARCHX
 
 scale = 100.0
 
@@ -109,3 +109,68 @@ filtered_returns2 = rst.std_resid ** 2.0
 
 sm.graphics.tsa.plot_acf(returns2, lags=100)
 sm.graphics.tsa.plot_acf(filtered_returns2, lags=100)
+
+# Exercise 3
+
+spClose = pd.read_csv(
+    'data/Chapter4_Data1.csv', parse_dates=True,
+    index_col='Date', squeeze=True)
+
+vix = pd.read_csv(
+    'data/Chapter4_Data2.csv', parse_dates=True,
+    index_col='Date', squeeze=True)
+
+vix *= scale
+vix2 = vix ** 2.0 / 252.0
+
+returns = spClose.apply(np.log) - spClose.shift(1).apply(np.log)
+returns *= scale
+returns.dropna(inplace=True)
+
+# Correlation of sigma and vix
+
+tsm = ConstantMean(returns)
+garch = GARCH(p=1, q=1)
+tsm.volatility = garch
+tsm.distribution = StudentsT()
+rst = tsm.fit()
+
+sigma2 = rst.conditional_volatility ** 2.0
+
+print(rst)
+
+sb.regplot(
+    x=vix2,
+    y=sigma2,
+    marker='.')
+
+print(stats.pearsonr(vix2, sigma2))
+
+'''
+The correlation of sigma2 and vix2 is really high.
+
+Because of multicollinearity, vix2 is not a good explanatory 
+variable for (N)GARCHX model.
+
+Maybe, we can replace sigma2 by vix2 in (N)GARCHX model.
+'''
+
+# using GARCHX(1,1)-normal
+
+tsm = ZeroMean(returns)
+garchx = GARCHX(vix2.values)
+tsm.volatility = garchx
+rst = tsm.fit()
+
+print(rst)
+rst.plot(annualize='D')
+
+# using GARCHX(1,0)-normal
+
+tsm = ZeroMean(returns)
+garchx = GARCHX(vix2.values, q=0)
+tsm.volatility = garchx
+rst = tsm.fit()
+
+print(rst)
+rst.plot(annualize='D')
