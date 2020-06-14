@@ -9,6 +9,7 @@ def ngarch11_recursion_python(
         resids: NDArray,
         sigma2: NDArray,
         nobs: int,
+        backcast: float,
         var_bounds: NDArray) -> NDArray:
     """
     Compute variance recursion for NGARCH(1,1) and related models
@@ -22,6 +23,8 @@ def ngarch11_recursion_python(
         Conditional variances with same shape as resids
     nobs : int
         Length of resids
+    backcast : float
+        Value to use when initializing the recursion
     var_bounds : 2-d array
         nobs by 2-element array of upper and lower bounds for conditional
         transformed variances for each time period
@@ -32,7 +35,7 @@ def ngarch11_recursion_python(
     beta = parameters[2]
     theta = parameters[3]
 
-    sigma2[0] = omega
+    sigma2[0] = backcast
 
     for t in range(1, nobs):
         sigma2[t] = omega + \
@@ -52,6 +55,7 @@ def fixedngarch11_recursion_python(
         resids: NDArray,
         sigma2: NDArray,
         nobs: int,
+        backcast: float,
         var_bounds: NDArray) -> NDArray:
     """
     Compute variance recursion for FixedNGARCH(1,1) and related models
@@ -67,6 +71,8 @@ def fixedngarch11_recursion_python(
         Conditional variances with same shape as resids
     nobs : int
         Length of resids
+    backcast : float
+        Value to use when initializing the recursion
     var_bounds : 2-d array
         nobs by 2-element array of upper and lower bounds for conditional
         transformed variances for each time period
@@ -76,7 +82,7 @@ def fixedngarch11_recursion_python(
     alpha = parameters[1]
     beta = parameters[2]
 
-    sigma2[0] = omega
+    sigma2[0] = backcast
 
     for t in range(1, nobs):
         sigma2[t] = omega + \

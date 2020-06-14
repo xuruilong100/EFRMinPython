@@ -78,7 +78,7 @@ class NGARCH11(VolatilityProcess, metaclass=AbstractDocStringInheritor):
         nobs = resids.shape[0]
 
         ngarch11_recursion(
-            parameters, resids, sigma2, nobs, var_bounds)
+            parameters, resids, sigma2, nobs, backcast, var_bounds)
 
         return sigma2
 
@@ -324,7 +324,7 @@ class FixedNGARCH11(VolatilityProcess, metaclass=AbstractDocStringInheritor):
         nobs = resids.shape[0]
 
         fixedngarch11_recursion(
-            parameters, self.theta, resids, sigma2, nobs, var_bounds)
+            parameters, self.theta, resids, sigma2, nobs, backcast, var_bounds)
 
         return sigma2
 
