@@ -8,7 +8,9 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import statsmodels.api as sm
 from scipy import stats
-from arch.univariate import ConstantMean, StudentsT, ZeroMean, GARCH
+from arch.univariate import ConstantMean, StudentsT, ZeroMean, GARCH, SkewStudent
+from typing import Optional, Union, Sequence
+from arch.typing import ArrayLike1D, NDArray
 from prettytable import PrettyTable
 from archEx.NGARCH import NGARCH11, FixedNGARCH11
 
@@ -382,7 +384,7 @@ empTailProb = (np.array(range(50)) + 0.5) / len(returns)
 empTailQtl = np.sort(rst.std_resid)[0:50]
 evtTailQtl = -HillPpf(empTailProb, hillEst)
 
-f, ax = plt.subplots()
+_, ax = plt.subplots()
 ax.set_xlim(-8.0, 0.0)
 ax.set_ylim(-8.0, 0.0)
 
@@ -390,3 +392,83 @@ sns.scatterplot(
     x=evtTailQtl, y=empTailQtl, ax=ax)
 sns.lineplot(
     x=[-8, 0], y=[-8, 0], ax=ax)
+
+
+# Exercise 8
+
+class AsymmetricStudent(SkewStudent):
+    '''
+    Just add method pdf to class SkewStudent.
+    '''
+
+    def __init__(self,
+                 random_state: Optional[np.random.RandomState] = None) -> None:
+        super().__init__(random_state=random_state)
+
+    def pdf(self,
+            x: Union[Sequence[float], ArrayLike1D],
+            parameters: Optional[Union[Sequence[float], ArrayLike1D]] = None) -> NDArray:
+        d1 = parameters[0]  # nu
+        d2 = parameters[1]  # lambda
+
+        a = self._SkewStudent__const_a(parameters)
+        b = self._SkewStudent__const_b(parameters)
+        c = np.exp(self._SkewStudent__const_c(parameters))
+
+        scalar = np.core.isscalar(x)
+        if scalar:
+            x = np.array([x])
+
+        sign = 2.0 * np.asarray(x >= -a / b, dtype=float) - 1.0
+
+        d = b * c * (1 + (b * x + a) ** 2 / ((1 + sign * d2) ** 2 * (d1 - 2))) ** (-(1 + d1) / 2)
+
+        return d
+
+
+x = np.arange(-4, 4, 0.01)
+at = AsymmetricStudent()
+y1 = at.pdf(x, [8, -0.4])
+y2 = at.pdf(x, [8, 0.4])
+
+_, ax = plt.subplots()
+ax.set_xlim(-6.0, 6.0)
+ax.set_ylim(0.0, 0.5)
+ax.set_yticks(ticks=np.arange(0.0,0.55,0.05))
+ax.grid()
+sns.lineplot(
+    x=x, y=y1, ax=ax)
+sns.lineplot(
+    x=x, y=y2, ax=ax)
+
+# Exercise 9
+
+d2 = np.arange(-0.9,0.9,0.1)
+
+skew1 = [at.moment(3, [5.0, d]) for d in d2]
+skew2 = [at.moment(3, [10.0, d]) for d in d2]
+
+_, ax = plt.subplots()
+ax.set_xlim(-1.0, 1.0)
+ax.set_ylim(-3.0, 3.0)
+ax.grid()
+
+sns.lineplot(
+    x=d2, y=skew1, ax=ax)
+sns.lineplot(
+    x=d2, y=skew2, ax=ax)
+
+d1 = np.arange(4.5, 14.0, 0.1)
+
+kurt1 = [at.moment(4, [d, 0.5]) - 3 for d in d1]
+kurt2 = [at.moment(4, [d, 0.0]) - 3 for d in d1]
+
+_, ax = plt.subplots()
+ax.set_xlim(4.0, 14.0)
+ax.set_ylim(0.0, 30.0)
+ax.grid()
+
+sns.lineplot(
+    x=d1, y=kurt1, ax=ax)
+sns.lineplot(
+    x=d1, y=kurt2, ax=ax)
