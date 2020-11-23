@@ -203,7 +203,7 @@ class NGARCH11(VolatilityProcess, metaclass=AbstractDocStringInheritor):
                 beta * scaled_forecast_paths[:, loc]
 
             shock[:, h + m] = std_shocks[:, h] * np.sqrt(scaled_forecast_paths[:, h + m])
-            scaled_shock[:, h + m] = np.abs(shock[:, h + m]) ** 2.0
+            scaled_shock[:, h + m] = shock[:, h + m]
 
         forecast_paths = scaled_forecast_paths[:, m:]
 
@@ -238,10 +238,10 @@ class NGARCH11(VolatilityProcess, metaclass=AbstractDocStringInheritor):
 
                 count = i + 1
                 scaled_forecast_paths[:, m - count: m] = sigma2[:count]
-                scaled_shock[:, m - count: m] = np.abs(resids[:count]) ** self.power
+                scaled_shock[:, m - count: m] = resids[:count]
             else:
                 scaled_forecast_paths[:, :m] = sigma2[i - m + 1: i + 1]
-                scaled_shock[:, :m] = np.abs(resids[i - m + 1: i + 1]) ** self.power
+                scaled_shock[:, :m] = resids[i - m + 1: i + 1]
 
             f, p, s = self._simulate_paths(
                 m,
@@ -448,7 +448,7 @@ class FixedNGARCH11(VolatilityProcess, metaclass=AbstractDocStringInheritor):
                 beta * scaled_forecast_paths[:, loc]
 
             shock[:, h + m] = std_shocks[:, h] * np.sqrt(scaled_forecast_paths[:, h + m])
-            scaled_shock[:, h + m] = np.abs(shock[:, h + m]) ** 2.0
+            scaled_shock[:, h + m] = shock[:, h + m]
 
         forecast_paths = scaled_forecast_paths[:, m:]
 
@@ -484,10 +484,10 @@ class FixedNGARCH11(VolatilityProcess, metaclass=AbstractDocStringInheritor):
 
                 count = i + 1
                 scaled_forecast_paths[:, m - count: m] = sigma2[:count]
-                scaled_shock[:, m - count: m] = resids[:count] ** 2.0
+                scaled_shock[:, m - count: m] = resids[:count]
             else:
                 scaled_forecast_paths[:, :m] = sigma2[i - m + 1: i + 1]
-                scaled_shock[:, :m] = resids[i - m + 1: i + 1] ** 2.0
+                scaled_shock[:, :m] = resids[i - m + 1: i + 1]
 
             f, p, s = self._simulate_paths(
                 m,
