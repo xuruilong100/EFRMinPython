@@ -1,9 +1,9 @@
 import numpy as np
 import pandas as pd
 import seaborn as sns
-import statsmodels.api as sm
 from scipy import stats
-from arch.univariate import ZeroMean, EWMAVariance, StudentsT, GARCH, Normal
+from arch.univariate import ZeroMean, RiskMetrics2006, StudentsT, GARCH
+from copulas.multivariate import GaussianMultivariate
 
 scale = 100
 
@@ -131,3 +131,64 @@ for r in rho:
             cor.loc[p, idx] = cor_num[0]
 
 cor.plot()
+
+# Exercise 3 & 4
+
+data = pd.read_csv(
+    'data/Chapter9_Data.csv', parse_dates=True, index_col='date')
+
+returns = data.apply(np.log) - data.apply(np.log).shift()
+returns.dropna(inplace=True)
+returns *= scale
+
+tsm_sp = ZeroMean(returns['sp'])
+rm2006 = RiskMetrics2006()
+tsm_sp.volatility = rm2006
+tsm_sp.distribution = StudentsT()
+rst_sp = tsm_sp.fit()
+
+tsm_tn = ZeroMean(returns['tn'])
+tsm_tn.volatility = rm2006
+tsm_tn.distribution = StudentsT()
+rst_tn = tsm_tn.fit()
+
+filtered_returns = pd.DataFrame(
+    dict(sp=rst_sp.std_resid, tn=rst_tn.std_resid),
+    index=returns.index)
+
+f = sns.PairGrid(returns)
+f.map_diag(sns.distplot)
+f.map_offdiag(sns.scatterplot)
+
+g = sns.PairGrid(filtered_returns)
+g.map_diag(sns.distplot)
+g.map_offdiag(sns.scatterplot)
+
+var_sp = rst_sp.forecast().variance.dropna().values[0]
+var_tn = rst_tn.forecast().variance.dropna().values[0]
+
+vol_sp = np.sqrt(var_sp)
+vol_tn = np.sqrt(var_tn)
+
+vol = np.array([vol_sp, vol_tn])
+
+n = 10000
+
+## copulas package
+
+gaus_cop1 = GaussianMultivariate()
+gaus_cop1.fit(filtered_returns)
+
+print(gaus_cop1.covariance)
+
+samples1 = gaus_cop1.sample(n).values
+scale_samples1 = samples1 * vol.T
+
+sim_returns1 = 0.5 * (scale_samples1[:, 0] + scale_samples1[:, 1])
+
+sorted_returns1 = np.sort(sim_returns1)
+
+sns.distplot(sorted_returns1)
+
+var = stats.scoreatpercentile(sorted_returns1, 1)
+es = np.mean(sorted_returns1[:100])
